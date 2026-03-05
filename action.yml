@@ -1,4 +1,4 @@
-name: 'SpiderMedic'
+name: 'SpiderMedic Link Validator'
 description: 'Crawl a website and validate HTTP responses — fails the job if any 404s or errors are found'
 
 branding:
