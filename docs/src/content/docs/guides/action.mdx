@@ -10,7 +10,7 @@ The spidermedic GitHub Action runs the crawler inside a Docker container — no 
 ## Usage
 
 ```yaml
-- uses: beekmanlabs/spidermedic@main
+- uses: ethanhann/spidermedic@main
   with:
     url: 'https://example.com'
 ```
@@ -42,7 +42,7 @@ The workflow step will automatically fail when the exit code is `1`.
   <TabItem label="Basic">
 ```yaml
 steps:
-  - uses: beekmanlabs/spidermedic@main
+  - uses: ethanhann/spidermedic@main
     with:
       url: 'https://example.com'
 ```
@@ -60,7 +60,7 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: beekmanlabs/spidermedic@main
+      - uses: ethanhann/spidermedic@main
         with:
           url: 'https://example.com'
           concurrency: '20'
@@ -77,7 +77,7 @@ jobs:
   check-links:
     runs-on: ubuntu-latest
     steps:
-      - uses: beekmanlabs/spidermedic@main
+      - uses: ethanhann/spidermedic@main
         with:
           url: 'https://example.com'
 ```
@@ -85,7 +85,7 @@ jobs:
   <TabItem label="Subtree only">
 ```yaml
 # Only crawl the /blog section
-- uses: beekmanlabs/spidermedic@main
+- uses: ethanhann/spidermedic@main
   with:
     url: 'https://example.com/blog'
     path: '/blog'
@@ -100,7 +100,7 @@ jobs:
 ```yaml
 - name: Crawl (JSON)
   run: |
-    docker run --rm ghcr.io/beekmanlabs/spidermedic \
+    docker run --rm ghcr.io/ethanhann/spidermedic \
       --url=https://example.com \
       --output=json > crawl-results.json
 
@@ -111,5 +111,5 @@ jobs:
 ```
 
 <Aside type="tip">
-  Pin to a specific tag (e.g. `beekmanlabs/spidermedic@v1.0.0`) in production workflows for reproducible builds.
+  Pin to a specific tag (e.g. `ethanhann/spidermedic@v1.0.0`) in production workflows for reproducible builds.
 </Aside>
