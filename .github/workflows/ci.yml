@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy -- -D warnings
+
+  docker:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t spidermedic .
+
+  action-integration:
+    name: Action integration test
+    runs-on: ubuntu-latest
+    needs: docker
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run spidermedic against example.com
+        uses: ./
+        with:
+          url: 'https://example.com'
+          max-depth: '1'
+          concurrency: '5'
+
+  docs-dogfood:
+    name: Dogfood — crawl docs site
+    runs-on: ubuntu-latest
+    needs: docker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build docs
+        run: npm install && npm run build
+        working-directory: docs
+      - name: Serve docs on port 4321
+        run: |
+          python3 -m http.server 4321 --directory docs/dist &
+          HOST_IP=$(ip addr show docker0 | awk '/inet / {print $2}' | cut -d/ -f1)
+          echo "DOCS_URL=http://${HOST_IP}:4321" >> $GITHUB_ENV
+      - name: Wait for server to be ready
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf $DOCS_URL > /dev/null && echo "Server ready" && exit 0
+            sleep 1
+          done
+          echo "Server did not start in time" && exit 1
+      - name: Run spidermedic against docs site
+        uses: ./
+        with:
+          url: '${{ env.DOCS_URL }}'
+          max-depth: '3'
+          concurrency: '5'

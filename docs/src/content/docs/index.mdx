@@ -1,0 +1,64 @@
+---
+title: spidermedic
+description: Crawl a website and validate HTTP responses — catch broken links in CI before they reach production.
+template: splash
+hero:
+  tagline: Crawl your site and catch broken links before they reach production.
+  actions:
+    - text: GitHub Action
+      link: /guides/action
+      icon: right-arrow
+      variant: primary
+    - text: CLI
+      link: /guides/cli
+      icon: right-arrow
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## What is spidermedic?
+
+**spidermedic** is a website crawler that validates every page it finds. Give it a URL and it walks the entire site, reporting any page that returns a 4xx or 5xx status code. It exits with code `1` if errors are found — making it a natural fit for CI pipelines.
+
+<CardGrid>
+  <Card title="GitHub Action" icon="github">
+    Drop one step into any workflow and automatically verify your site after every deploy.
+  </Card>
+  <Card title="CLI tool" icon="laptop">
+    Run spidermedic locally during development or integrate it into any shell script.
+  </Card>
+  <Card title="Multiple output formats" icon="document">
+    Results in your terminal, as JSON, or as CSV — pipe them wherever they need to go.
+  </Card>
+  <Card title="Fast & configurable" icon="rocket">
+    Tune concurrency, request interval, crawl depth, and path prefix to match your site.
+  </Card>
+</CardGrid>
+
+## Quick start
+
+### As a GitHub Action
+
+```yaml
+# .github/workflows/check-links.yml
+name: Link checker
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: beekmanlabs/node-spidermedic@main
+        with:
+          url: 'https://example.com'
+```
+
+### As a CLI
+
+```sh
+cargo install spidermedic
+spidermedic --url=https://example.com
+```

@@ -1,0 +1,115 @@
+---
+title: GitHub Action
+description: Use spidermedic as a GitHub Action to validate your site in CI.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+The spidermedic GitHub Action runs the crawler inside a Docker container — no Rust toolchain or extra dependencies required.
+
+## Usage
+
+```yaml
+- uses: beekmanlabs/node-spidermedic@main
+  with:
+    url: 'https://example.com'
+```
+
+## Inputs
+
+| Input | Required | Default | Description |
+|---|---|---|---|
+| `url` | **yes** | — | Starting URL to crawl |
+| `path` | no | `/` | Restrict crawl to this URL path prefix |
+| `port` | no | `80` | Port override |
+| `interval` | no | `300` | Milliseconds between requests |
+| `concurrency` | no | `10` | Max parallel in-flight requests |
+| `max-depth` | no | `0` | Max crawl depth (`0` = unlimited) |
+| `output` | no | `terminal` | Output format: `terminal`, `json`, or `csv` |
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | All crawled pages returned non-error responses |
+| `1` | One or more 4xx / 5xx responses were found |
+
+The workflow step will automatically fail when the exit code is `1`.
+
+## Examples
+
+<Tabs>
+  <TabItem label="Basic">
+```yaml
+steps:
+  - uses: beekmanlabs/node-spidermedic@main
+    with:
+      url: 'https://example.com'
+```
+  </TabItem>
+  <TabItem label="After deploy">
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy site
+        run: ./deploy.sh
+
+  check-links:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: beekmanlabs/node-spidermedic@main
+        with:
+          url: 'https://example.com'
+          concurrency: '20'
+          max-depth: '5'
+```
+  </TabItem>
+  <TabItem label="Scheduled">
+```yaml
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily at 6am
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: beekmanlabs/node-spidermedic@main
+        with:
+          url: 'https://example.com'
+```
+  </TabItem>
+  <TabItem label="Subtree only">
+```yaml
+# Only crawl the /blog section
+- uses: beekmanlabs/node-spidermedic@main
+  with:
+    url: 'https://example.com/blog'
+    path: '/blog'
+```
+  </TabItem>
+</Tabs>
+
+## Capturing JSON output
+
+`output: json` writes results to stdout, which GitHub Actions captures in the step log. To save it as an artifact, wrap the action in a shell step:
+
+```yaml
+- name: Crawl (JSON)
+  run: |
+    docker run --rm ghcr.io/beekmanlabs/spidermedic \
+      --url=https://example.com \
+      --output=json > crawl-results.json
+
+- uses: actions/upload-artifact@v4
+  with:
+    name: crawl-results
+    path: crawl-results.json
+```
+
+<Aside type="tip">
+  Pin to a specific tag (e.g. `beekmanlabs/node-spidermedic@v1.0.0`) in production workflows for reproducible builds.
+</Aside>

@@ -1,0 +1,48 @@
+name: 'spidermedic'
+description: 'Crawl a website and validate HTTP responses — fails the job if any 404s or errors are found'
+author: 'Ethan Hann'
+
+branding:
+  icon: 'activity'
+  color: 'red'
+
+inputs:
+  url:
+    description: 'Starting URL to crawl (required)'
+    required: true
+  path:
+    description: 'URL path prefix to restrict crawling'
+    required: false
+    default: '/'
+  port:
+    description: 'Port to connect on (0 = use scheme default)'
+    required: false
+    default: '0'
+  interval:
+    description: 'Milliseconds between requests'
+    required: false
+    default: '300'
+  concurrency:
+    description: 'Maximum number of concurrent in-flight requests'
+    required: false
+    default: '10'
+  max-depth:
+    description: 'Maximum crawl depth from the seed URL (0 = unlimited)'
+    required: false
+    default: '0'
+  output:
+    description: 'Output format: terminal, json, or csv'
+    required: false
+    default: 'terminal'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - '--url=${{ inputs.url }}'
+    - '--path=${{ inputs.path }}'
+    - '--port=${{ inputs.port }}'
+    - '--interval=${{ inputs.interval }}'
+    - '--concurrency=${{ inputs.concurrency }}'
+    - '--max-depth=${{ inputs.max-depth }}'
+    - '--output=${{ inputs.output }}'

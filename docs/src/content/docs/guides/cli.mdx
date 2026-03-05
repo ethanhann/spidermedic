@@ -1,0 +1,78 @@
+---
+title: CLI
+description: Install and use spidermedic from the command line.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+## Installation
+
+<Tabs>
+  <TabItem label="cargo install">
+```sh
+cargo install spidermedic
+```
+  </TabItem>
+  <TabItem label="Build from source">
+```sh
+git clone https://github.com/beekmanlabs/node-spidermedic
+cd node-spidermedic
+cargo build --release
+# binary at: target/release/spidermedic
+```
+  </TabItem>
+</Tabs>
+
+## Usage
+
+```
+spidermedic --url=<URL> [OPTIONS]
+```
+
+## Flags
+
+| Flag | Default | Description |
+|---|---|---|
+| `--url` | **required** | Starting URL to crawl |
+| `--path` | `/` | Restrict crawl to this URL path prefix |
+| `--port` | `80` | Port override |
+| `--interval` | `300` | Milliseconds between requests |
+| `--concurrency` | `10` | Max parallel in-flight requests |
+| `--max-depth` | `0` | Max depth (`0` = unlimited) |
+| `--output` | `terminal` | `terminal` / `json` / `csv` |
+
+## Examples
+
+```sh
+# Crawl a site with default settings
+spidermedic --url=https://example.com
+
+# Faster crawl with more concurrency, limited to 3 levels deep
+spidermedic --url=https://example.com --concurrency=20 --max-depth=3
+
+# Only crawl the /docs section
+spidermedic --url=https://example.com/docs --path=/docs
+
+# JSON output piped to jq
+spidermedic --url=https://example.com --output=json | jq '.[] | select(.status >= 400)'
+
+# CSV output saved to a file
+spidermedic --url=https://example.com --output=csv > results.csv
+```
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | All crawled pages returned non-error responses |
+| `1` | One or more 4xx / 5xx responses were found |
+
+Use the exit code in shell scripts to gate deployments:
+
+```sh
+spidermedic --url=https://staging.example.com && deploy_to_production.sh
+```
+
+<Aside type="caution">
+  Be considerate with `--interval` and `--concurrency` settings on sites you don't own. High concurrency with a low interval can look like a DoS attack to the target server.
+</Aside>
