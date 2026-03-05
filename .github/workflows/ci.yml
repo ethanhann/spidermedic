@@ -63,7 +63,7 @@ jobs:
       - name: Serve docs on port 4321
         run: |
           python3 -m http.server 4321 --directory docs/dist &
-          HOST_IP=$(ip route show default | awk '{print $3}')
+          HOST_IP=$(ip addr show docker0 | awk '/inet / {print $2}' | cut -d/ -f1)
           echo "DOCS_URL=http://${HOST_IP}:4321" >> $GITHUB_ENV
       - name: Wait for server to be ready
         run: |
