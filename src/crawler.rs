@@ -45,11 +45,8 @@ pub async fn run(config: &Config) -> Vec<CrawlResult> {
 
     loop {
         // Drain the channel into the local queue
-        loop {
-            match rx.try_recv() {
-                Ok(item) => local_queue.push_back(item),
-                Err(_) => break,
-            }
+        while let Ok(item) = rx.try_recv() {
+            local_queue.push_back(item);
         }
 
         if local_queue.is_empty() {
@@ -115,7 +112,7 @@ pub async fn run(config: &Config) -> Vec<CrawlResult> {
                         if v.insert(normalized.clone()) {
                             drop(v);
                             // Depth gate before queuing
-                            if max_depth == 0 || depth + 1 <= max_depth {
+                            if max_depth == 0 || depth < max_depth {
                                 tx2.send((normalized, depth + 1)).ok();
                             }
                         }
@@ -137,10 +134,9 @@ pub async fn run(config: &Config) -> Vec<CrawlResult> {
         });
     }
 
-    let final_results = Arc::try_unwrap(results)
+    Arc::try_unwrap(results)
         .expect("results arc still held")
-        .into_inner();
-    final_results
+        .into_inner()
 }
 
 struct FetchOutcome {

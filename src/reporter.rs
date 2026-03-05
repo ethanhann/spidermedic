@@ -29,7 +29,7 @@ fn report_csv(results: &[CrawlResult]) {
     wtr.write_record(["url", "status", "bytes", "depth", "success", "error"])
         .unwrap();
     for r in results {
-        wtr.write_record(&[
+        wtr.write_record([
             r.url.as_str(),
             &r.status.to_string(),
             &r.bytes.to_string(),
